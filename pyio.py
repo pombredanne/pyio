@@ -94,6 +94,8 @@ def mkdirs(d, mode=0777):
     Input:
         d    (str): Directory
         mode (int): Permissions
+    Outputs:
+        NULL
     """
     try: 
         os.makedirs(d, mode)
@@ -111,6 +113,8 @@ def w_zero(f, sz, bs, fsync=False):
         sz     (int): File size in KB
         bs     (int): Block size in KB
         fsync (bool): Fsync after IO is complete
+    Outputs:
+        NULL
     """
     buf = '\0' * 1024
     
@@ -135,6 +139,8 @@ def w_srand(f, sz, bs, fsync=False):
         sz     (int): File size in KB
         bs     (int): Block size in KB
         fsync (bool): Fsync after IO is complete
+    Outputs:
+        NULL
     """
     buf = os.urandom(1024)
     
@@ -159,6 +165,8 @@ def w_rand(f, sz, bs, fsync=False):
         sz     (int): File size in KB
         bs     (int): Block size in KB
         fsync (bool): Fsync after IO is complete
+    Outputs:
+        NULL
     """
     bs *= 1024
     sz *= 1024
@@ -185,6 +193,8 @@ def w_rand_blk(f, bs, fsync=False):
         f      (str): File
         bs     (int): Block size in KB
         fsync (bool): Fsync after IO is complete
+    Outputs:
+        NULL
     """
     sz = os.stat(f).st_size
     bs *= 1024
@@ -212,6 +222,8 @@ def cp(src, dst, bs, fsync=False):
         dst    (str): Destination file or directory
         bs     (int): Block size in KB
         fsync (bool): Fsync after IO is complete
+    Outputs:
+        NULL
     """
     if os.path.isdir(dst):
         dst = os.path.join(dst, os.path.basename(src)) 
@@ -243,6 +255,8 @@ def cp_conv(src, dst, bs, fsync=False):
         dst    (str): Destination file or directory
         bs     (int): Block size in KB
         fsync (bool): Fsync after IO is complete
+    Outputs:
+        NULL
     """ 
     if os.path.isdir(dst):
         dst = os.path.join(dst, os.path.basename(src))
@@ -277,6 +291,8 @@ def cp_rand(src, dst, bs, fsync=False):
         dst    (str): Destination file or directory
         bs     (int): Block size in KB
         fsync (bool): Fsync after IO is complete
+    Outputs:
+        NULL
     """
     if os.path.isdir(dst):
         dst = os.path.join(dst, os.path.basename(src))
@@ -312,6 +328,8 @@ def cp_win32(src, dst, bs=16, fsync=False):
         dst    (str): Destination file or directory
         bs     (int): Block size in KB
         fsync (bool): Fsync after IO is complete
+    Outputs:
+        NULL
     """
   
     bs *= 1024
@@ -347,6 +365,8 @@ def r_seq(f, bs):
     Inputs:
         f  (str): File
         bs (int): Block size in KB
+    Outputs:
+        NULL
     """
     bs *= 1024
 
@@ -364,6 +384,8 @@ def r_rand(f, bs):
     Inputs:
         f  (str): File
         bs (int): Block size in KB
+    Outputs:
+        NULL
     """
     blk_map = _blk_map(src, bs)
     bs *= 1024
@@ -382,6 +404,8 @@ def r_conv(f, bs):
     Inputs:
         f  (str): File
         bs (int): Block size in KB
+    Outputs:
+        NULL
     """
     blk_map = _blk_map(src, bs)
     bs *= 1024
@@ -400,6 +424,8 @@ def r_rand_blk(f, bs):
     Inputs:
         f  (str): File
         bs (int): Block size in KB
+    Outputs:
+        NULL
     """
     bs *= 1024
     st = os.stat(f)
