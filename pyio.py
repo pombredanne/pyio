@@ -373,7 +373,7 @@ def r_seq(f, bs):
     # Write file and metadata.
     with open(f, 'rb') as fh:
         while True:
-            fh.read(bs)
+            buf = fh.read(bs)
             if not buf:
                 break
    
