@@ -44,26 +44,31 @@ def walk(root):
             f.append(os.path.join(root, name))
     return f
 
-def main(root):
+def main(root, bs):
     """
     Infinite read loop.
     
     Inputs:
         root (str): Root directory
+        bs   (int): Block size in KB
     Outputs:
         NA
     """
     
+    # Walk directory
     files = walk(root)
-    #print files
     
     while True:
         x = randint(0, len(files)-1)
-        r_seq(files[x], 32)
+        f = files[x]
+        print 'Reading "f".'
+        r_seq(f, bs)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Infinite read loop.')
     parser.add_argument('--dir', '-d', dest='dir', type=str, required=True,
                     help='Root directory')
+    parser.add_argument('--bs', dest='bs', type=int, required=False, default=32,
+                    help='IO block size in KB')
     args = parser.parse_args()
-    main(args.dir)
+    main(args.dir, args.bs)
