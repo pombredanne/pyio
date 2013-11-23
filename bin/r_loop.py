@@ -61,7 +61,7 @@ def main(root, bs):
     while True:
         x = randint(0, len(files)-1)
         f = files[x]
-        print 'Reading "f".'
+        print 'Reading "%s".' % f
         r_seq(f, bs)
 
 if __name__ == "__main__":
