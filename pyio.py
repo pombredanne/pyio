@@ -317,7 +317,7 @@ def cp_rand(src, dst, bs, fsync=False):
                 fdst.flush()
                 os.fsync(fdst.fileno())
                 
-def cp_win32(src, dst, bs=16, fsync=False):
+def cp_win32(src, dst, bs, fsync=False):
     """
     Copy a file from source to destination using the win32 libraries.
     
