@@ -46,13 +46,13 @@ def filegen(min_sz, max_sz, qty, ftype, dst=None, split=None):
     # Define file type
     if ftype == 0:
         print 'Using zero file generator.'
-        gen = lambda f, size: w_zero(f, size)
+        gen = lambda f, size: w_zero(f, size, bs)
     elif ftype == 1:
         print 'Using random file generator.'
-        gen = lambda f, size: w_rand(f, size)
+        gen = lambda f, size: w_rand(f, size, bs)
     elif ftype == 2:
         print 'Using pseudo-random file generator.'
-        gen = lambda f, size: w_srand(f, size)
+        gen = lambda f, size: w_srand(f, size, bs)
     else:
         raise RuntimeError('Invalid file type.')
     
