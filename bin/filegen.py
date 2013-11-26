@@ -26,33 +26,30 @@ from random import randint
 from argparse import ArgumentParser
 from pyio import w_srand, w_rand, w_zero
 
-def filegen(min_sz, max_sz, qty, ftype, dst=None, split=None):
+def filegen(min_sz, max_sz, qty, ftype, bs=1024, dst=None, split=None):
     """
-        Generate files.
-        
-        Inputs:
-            min_sz (int): Minimum file size
-            max_sz (int): Maximum file size
-            qty    (int): Total file count
-            ftype  (int): File type
-            dst    (str): Destination directory
-            split  (int): File per directory
-        Outputs:
-            NULL
-    """
-    # Define default block size
-    bs = 1024
+    Generate files.
     
+    Inputs:
+        min_sz (int): Minimum file size
+        max_sz (int): Maximum file size
+        qty    (int): Total file count
+        ftype  (int): File type
+        dst    (str): Destination directory
+        split  (int): File per directory
+    Outputs:
+        NULL
+    """
     # Define file type
     if ftype == 0:
         print 'Using zero file generator.'
-        gen = lambda f, size: w_zero(f, size, bs)
+        gen = lambda f, size, bs: w_zero(f, size, bs)
     elif ftype == 1:
         print 'Using random file generator.'
-        gen = lambda f, size: w_rand(f, size, bs)
+        gen = lambda f, size, bs: w_rand(f, size, bs)
     elif ftype == 2:
         print 'Using pseudo-random file generator.'
-        gen = lambda f, size: w_srand(f, size, bs)
+        gen = lambda f, size, bs: w_srand(f, size, bs)
     else:
         raise RuntimeError('Invalid file type.')
     
@@ -75,7 +72,7 @@ def filegen(min_sz, max_sz, qty, ftype, dst=None, split=None):
             # Write file.    
             size = randint(min_sz, max_sz)
             f = os.path.join(pwd, ".".join([str(current_ct), "data"]))
-            gen(f, size)
+            gen(f, size, bs)
             
             # Update counters.
             current_ct += 1
@@ -97,17 +94,19 @@ if __name__ == '__main__':
     # Define CLI arguments.
     parser = ArgumentParser(description='File generation utility.')
     parser.add_argument('--min', dest='min', type=int, required=True,
-        help='minimum file size in KB')
+                        help='minimum file size in KB')
     parser.add_argument('--max', dest='max', type=int, required=True,
-        help='max file size in KB')
+                        help='max file size in KB')
     parser.add_argument('--qty', dest='qty', type=int, required=True,
-        help='file count')
+                        help='file count')
     parser.add_argument('--ftype', '-f', dest='ftype', type=int, required=True,
-        choices=[0, 1, 2], help='file type (0=zero, 1=rand, 2=srand)')
+                        choices=[0, 1, 2], help='file type (0=zero, 1=rand, 2=srand)')
     parser.add_argument('--dst', dest='dst', type=str, required=False,
-        default=None, help='destination directory')
+                        default=None, help='destination directory')
     parser.add_argument('--split', dest='split', type=int, required=False,
-        default=None, help='files per directory')
+                        default=None, help='files per directory')
+    parser.add_argument('--bs', dest='bs', type=int, required=False,
+                        default=1024, help='IO record size')
     args = parser.parse_args()
     
-    filegen(args.min, args.max, args.qty, args.ftype, args.dst, args.split)
+    filegen(args.min, args.max, args.qty, args.ftype, args.bs, args.dst, args.split)
