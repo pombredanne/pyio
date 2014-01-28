@@ -26,14 +26,9 @@ import stat
 import errno
 from itertools import cycle
 from math import ceil
-from random import randint, shuffle, seed
-try:
-    import win32file
-    import win32con
-except:
-    pass
+from random import randint, shuffle
 
-def _seed(x):
+def seed(x):
     """
     Define a seed for the pseudo random number generator.
 
@@ -42,7 +37,7 @@ def _seed(x):
     Outputs:
         NULL
     """
-    seed(x)
+    random.seed(x)
 
 
 def _samefile(src, dst):
@@ -79,8 +74,7 @@ def _blk_map(f, bs):
     bs *= 1024
     
     # Get file size.
-    st = os.stat(f)
-    sz = float(st.st_size)
+    sz = float(os.stat(f).st_size)
     
     # Build block map index.
     offsets = range(int(ceil(sz/bs)))
@@ -118,17 +112,21 @@ def w_zero(f, sz, bs, fsync=False):
     """
     buf = '\0' * 1024
     
-    with open(f, 'wb') as fh:
+    try:
+        fh = os.open(f, os.O_CREAT | os.O_TRUNC | os.O_WRONLY)
         while True:
             if sz < bs:
-                fh.write(buf * sz)
+                os.write(fh, buf * sz)
                 break
-            fh.write(buf * bs)
+            os.write(fh, buf * bs)
             sz -= bs
         # Force write of fdst to disk.
         if fsync:
-            fh.flush()
-            os.fsync(fh.fileno())
+            os.fsync(fh)
+    except:
+        raise
+    finally:
+        os.close(fh)
 
 def w_srand(f, sz, bs, fsync=False):
     """
@@ -144,17 +142,21 @@ def w_srand(f, sz, bs, fsync=False):
     """
     buf = os.urandom(1024)
     
-    with open(f, 'wb') as fh:
+    try:
+        fh = os.open(f, os.O_CREAT | os.O_TRUNC | os.O_WRONLY)
         while True:
             if sz < bs:
-                fh.write(buf * sz)
+                os.write(fh, buf * sz)
                 break
-            fh.write(buf * bs)
+            os.write(fh, buf * bs)
             sz -= bs
         # Force write of fdst to disk.
         if fsync:
-            fh.flush()
-            os.fsync(fh.fileno())
+            os.fsync(fh)
+    except:
+        raise
+    finally:
+        os.close(fh)
 
 def w_rand(f, sz, bs, fsync=False):
     """
@@ -171,23 +173,32 @@ def w_rand(f, sz, bs, fsync=False):
     bs *= 1024
     sz *= 1024
     
-    with open(f, 'wb') as fh:
+    try:
+        fh = os.open(f, os.O_CREAT | os.O_TRUNC | os.O_WRONLY)
         while True:
             if sz < bs:
                 buf = os.urandom(sz)
-                fh.write(buf)
+                os.write(fh, buf)
                 break
             buf = os.urandom(bs)
-            fh.write(buf)
+            os.write(fh, buf)
             sz -= bs
         # Force write of fdst to disk.
         if fsync:
-            fh.flush()
-            os.fsync(fh.fileno())
+            os.fsync(fh)
+    except:
+        raise
+    finally:
+        os.close(fh)
 
 def w_rand_blk(f, bs, fsync=False):
     """
     Seek to a random offset and write random data of specified block size.
+    
+    Note that there is no way to modify the middle of a file without first
+    reading the entire file, modifying the contents, and re-writing the file. 
+    Because we simply want to write to a random location the file will be 
+    truncated based on the loaction of the random seek and update.
     
     Inputs:
         f      (str): File
@@ -197,19 +208,22 @@ def w_rand_blk(f, bs, fsync=False):
         NULL
     """
     sz = os.stat(f).st_size
+    buf = os.urandom(1024) * bs
     bs *= 1024
     if sz < bs:
         raise ValueError('block size is greater than file size')
-    buf = os.urandom(1024) * bs / 1024
     
-    with open(f, 'r+b') as fh:
-        offset = randint(0, sz - bs)
-        fh.seek(offset)
-        buf = fh.write(buf)
+    try:
+        fh = os.open(f, os.O_CREAT | os.O_TRUNC | os.O_WRONLY)
+        os.lseek(fh, randint(0, sz - bs), 0)
+        os.write(fh, buf)
         # Force write of fdst to disk.
         if fsync:
-            fh.flush()
-            os.fsync(fh.fileno())
+            os.fsync(fh)
+    except:
+        raise
+    finally:
+        os.close(fh)
 
 def cp(src, dst, bs, fsync=False):
     """
@@ -231,22 +245,29 @@ def cp(src, dst, bs, fsync=False):
         raise Error("`%s` and `%s` are the same file" % (src, dst))
     bs *= 1024
 
-    # Write file.
-    with open(src, 'rb') as fsrc:
-        with open(dst, 'wb') as fdst:
-            while True:
-                buf = fsrc.read(bs)
-                if not buf:
-                    break
-                fdst.write(buf)
-            # Force write of fdst to disk.
-            if fsync:
-                fdst.flush()
-                os.fsync(fdst.fileno())
+    try:
+        fsrc = os.open(src, os.O_RDONLY)
+        fdst = os.open(dst, os.O_CREAT | os.O_TRUNC | os.O_WRONLY)
+        while True:
+            buf = os.read(fsrc, bs)
+            if not buf:
+                break
+            os.write(fdst, buf)
+        # Force write of fdst to disk.
+        if fsync:
+            os.fsync(fdst)
+    except:
+        raise
+    finally:
+        os.close(fsrc)
+        os.close(fdst)
             
 def cp_conv(src, dst, bs, fsync=False):
     """
-    Converge file copy.
+    Converge file copy. Given a file of size 's' a converged copy
+    will copy the blocks at offset 0, s - bs, bs, s - 2*bs, and so 
+    on converging to the middle of the file until the entire file has
+    been copied.
         
     The destination may be a directory.
     
@@ -264,25 +285,31 @@ def cp_conv(src, dst, bs, fsync=False):
         raise Error("`%s` and `%s` are the same file" % (src, dst))   
     blk_map = _blk_map(src, bs)
     bs *= 1024
-
-    # Copy file.
     idx = cycle([0,-1]).next
-    with open(src, 'rb') as fsrc:
-        with open(dst, 'wb') as fdst:
-            while blk_map:
-                offset = blk_map.pop(idx())
-                fsrc.seek(offset)
-                fdst.seek(offset)
-                buf = fsrc.read(bs)
-                fdst.write(buf)
-            # Force write of fdst to disk.
-            if fsync:
-                fdst.flush()
-                os.fsync(fdst.fileno())
+
+    try:
+        fsrc = os.open(src, os.O_RDONLY)
+        fdst = os.open(dst, os.O_CREAT | os.O_TRUNC | os.O_WRONLY)
+        while blk_map:
+            offset = blk_map.pop(idx())
+            os.lseek(fsrc, offset, 0)
+            os.lseek(fdst, offset, 0)
+            buf = os.read(fsrc, bs)
+            os.write(fdst, buf)
+        # Force write of fdst to disk.
+        if fsync:
+            os.fsync(fdst)
+    except:
+        raise
+    finally:
+        os.close(fsrc)
+        os.close(fdst)
 
 def cp_rand(src, dst, bs, fsync=False):
     """
-    Copy a file from source to destination using random IO.
+    Copy a file from source to destination using random IO. A file
+    block map is built and random offsets are selected and copied
+    until the entire file been written to the destination.
     
     The destination may be a directory.
     
@@ -296,67 +323,30 @@ def cp_rand(src, dst, bs, fsync=False):
     """
     if os.path.isdir(dst):
         dst = os.path.join(dst, os.path.basename(src))
-        
     if _samefile(src, dst):
         raise Error("`%s` and `%s` are the same file" % (src, dst))
     
     blk_map = _blk_map(src, bs)
     bs *= 1024
+    shuffle(blk_map)
     
-    shuffle(blk_map)    
-    with open(src, 'rb') as fsrc:
-        with open(dst, 'wb') as fdst:
-            while blk_map:
-                offset = blk_map.pop()
-                fsrc.seek(offset)
-                fdst.seek(offset)
-                buf = fsrc.read(bs)
-                fdst.write(buf)
-            # Force write of fdst to disk.
-            if fsync:
-                fdst.flush()
-                os.fsync(fdst.fileno())
-                
-def cp_win32(src, dst, bs, fsync=False):
-    """
-    Copy a file from source to destination using the win32 libraries.
-    
-    The destination may be a directory.
-    
-    Inputs:
-        src    (str): Source file
-        dst    (str): Destination file or directory
-        bs     (int): Block size in KB
-        fsync (bool): Fsync after IO is complete
-    Outputs:
-        NULL
-    """
-  
-    bs *= 1024
-   
-    if os.path.isdir(dst):
-        dst = os.path.join(dst, os.path.basename(src))
-   
-    # Open destination file using win32 API
-    fdst = win32file.CreateFile(dst, win32file.GENERIC_WRITE, 0, None,
-                win32con.CREATE_ALWAYS, None, None)
-
     try:
-        # Write file and metadata.
-        with open(src, 'rb') as fsrc:
-            while True:
-                buf = fsrc.read(bs)
-                if not buf:
-                    break
-                win32file.WriteFile(fdst, buf)
-    
-        # Flush and close dst
+        fsrc = os.open(src, os.O_RDONLY)
+        fdst = os.open(dst, os.O_CREAT | os.O_TRUNC | os.O_WRONLY)
+        while blk_map:
+            offset = blk_map.pop()
+            os.lseek(fsrc, offset, 0)
+            os.lseek(fdst, offset, 0)
+            buf = os.read(fsrc, bs)
+            os.write(fdst, buf)
+        # Force write of fdst to disk.
         if fsync:
-            win32file.FlushFileBuffers(fdst)
+            os.fsync(fdst)
     except:
         raise
     finally:
-        fdst.close()
+        os.close(fsrc)
+        os.close(fdst)
     
 def r_seq(f, bs):
     """
@@ -370,16 +360,20 @@ def r_seq(f, bs):
     """
     bs *= 1024
 
-    # Write file and metadata.
-    with open(f, 'rb') as fh:
+    try:
+        fh = os.open(f, os.O_RDONLY)
         while True:
-            buf = fh.read(bs)
+            buf = os.read(fh, bs)
             if not buf:
                 break
+    except:
+        raise
+    finally:
+        os.close(fh)
    
 def r_rand(f, bs):
     """
-    Random file read.
+    Read a file using random IO.
     
     Inputs:
         f  (str): File
@@ -387,19 +381,27 @@ def r_rand(f, bs):
     Outputs:
         NULL
     """
-    blk_map = _blk_map(src, bs)
+    blk_map = _blk_map(f, bs)
     bs *= 1024
-    
     shuffle(blk_map)
-    with open(src, 'rb') as fsrc:
+    
+    try:
+        fh = os.open(f, os.O_RDONLY)
         while blk_map:
             offset = blk_map.pop()
-            fsrc.seek(offset)
-            fsrc.read(bs)
+            os.lseek(fh, offset, 0)
+            os.read(fh, bs)
+    except:
+        raise
+    finally:
+        os.close(fh)
     
 def r_conv(f, bs):
     """
-    Converge file read.
+    Converge file read. Given a file of size s a converged read
+    will read the blocks at offset 0, sz - bs, bs, sz - 2*bs, and so 
+    on converging to the middle of the file until the entire file has
+    been read.
     
     Inputs:
         f  (str): File
@@ -407,15 +409,20 @@ def r_conv(f, bs):
     Outputs:
         NULL
     """
-    blk_map = _blk_map(src, bs)
+    blk_map = _blk_map(f, bs)
     bs *= 1024
-    
     idx = cycle([0,-1]).next
-    with open(f, 'rb') as fh:
+    
+    try:
+        fh = os.open(f, os.O_RDONLY)
         while blk_map:
             offset = blk_map.pop(idx())
-            fh.seek(offset)
-            fh.read(bs)
+            os.lseek(fh, offset, 0)
+            os.read(fh, bs)
+    except:
+        raise
+    finally:
+        os.close(fh)
 
 def r_rand_blk(f, bs):
     """
@@ -428,10 +435,15 @@ def r_rand_blk(f, bs):
         NULL
     """
     bs *= 1024
-    st = os.stat(f)
-    sz = st.st_size
-    offset = randint(0, sz - bs)
-            
-    with open(f, 'rb') as fh:
-        fh.seek(offset)
-        fh.read(bs)
+    sz = os.stat(f).st_size
+    if sz < bs:
+        raise ValueError('block size is greater than file size')
+    
+    try:            
+        fh = os.open(f, os.O_RDONLY)
+        os.lseek(fh, randint(0, sz - bs), 0)
+        os.read(fh, bs)
+    except:
+        raise
+    finally:
+        os.close(fh)
