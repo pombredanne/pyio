@@ -76,8 +76,7 @@ def _blk_map(f, bs):
     bs *= 1024
     
     # Get file size.
-    st = os.stat(f)
-    sz = float(st.st_size)
+    sz = float(os.stat(f).st_size)
     
     # Build block map index.
     offsets = range(int(ceil(sz/bs)))
@@ -100,10 +99,70 @@ def mkdirs(d, mode=0777):
         # Reraise the error unless it's about an already existing directory 
         if err.errno != errno.EEXIST or not os.path.isdir(d): 
             raise
-                
-def cp_win32(src, dst, bs, fsync=False):
+        
+def w_zero(f, sz, bs, fsync=False):
     """
-    Copy a file from source to destination using the win32 libraries.
+    Create a new file and fill it with zeros.
+
+    Inputs:
+        f      (str): File
+        sz     (int): File size in KB
+        bs     (int): Block size in KB
+        fsync (bool): Fsync after IO is complete
+    Outputs:
+        NULL
+    """
+    pass
+
+def w_srand(f, sz, bs, fsync=False):
+    """
+    Create a new file and fill it with pseudo random data.
+    
+    Inputs:
+        f      (str): File
+        sz     (int): File size in KB
+        bs     (int): Block size in KB
+        fsync (bool): Fsync after IO is complete
+    Outputs:
+        NULL
+    """
+    pass
+
+def w_rand(f, sz, bs, fsync=False):
+    """
+    Create a new file and fill it with random data.
+    
+    Inputs:
+        f      (str): File
+        sz     (int): File size in KB
+        bs     (int): Block size in KB
+        fsync (bool): Fsync after IO is complete
+    Outputs:
+        NULL
+    """
+    pass
+
+def w_rand_blk(f, bs, fsync=False):
+    """
+    Seek to a random offset and write random data of specified block size.
+    
+    Note that there is no way to modify the middle of a file without first
+    reading the entire file, modifying the contents, and re-writing the file. 
+    Because we simply want to write to a random location the file will be 
+    truncated based on the loaction of the random seek and update.
+    
+    Inputs:
+        f      (str): File
+        bs     (int): Block size in KB
+        fsync (bool): Fsync after IO is complete
+    Outputs:
+        NULL
+    """
+    pass
+
+def cp(src, dst, bs, fsync=False):
+    """
+    Copy a file from source to destination.
     
     The destination may be a directory.
     
@@ -115,7 +174,6 @@ def cp_win32(src, dst, bs, fsync=False):
     Outputs:
         NULL
     """
-  
     bs *= 1024
    
     if os.path.isdir(dst):
@@ -123,7 +181,7 @@ def cp_win32(src, dst, bs, fsync=False):
    
     # Open destination file using win32 API
     fdst = win32file.CreateFile(dst, win32file.GENERIC_WRITE, 0, None,
-                win32con.CREATE_ALWAYS, None, None)
+           win32con.CREATE_ALWAYS, None, None)
 
     try:
         # Write file and metadata.
@@ -141,3 +199,91 @@ def cp_win32(src, dst, bs, fsync=False):
         raise
     finally:
         fdst.close()
+            
+def cp_conv(src, dst, bs, fsync=False):
+    """
+    Converge file copy. Given a file of size 's' a converged copy
+    will copy the blocks at offset 0, s - bs, bs, s - 2*bs, and so 
+    on converging to the middle of the file until the entire file has
+    been copied.
+        
+    The destination may be a directory.
+    
+    Inputs:
+        src    (str): Source file
+        dst    (str): Destination file or directory
+        bs     (int): Block size in KB
+        fsync (bool): Fsync after IO is complete
+    Outputs:
+        NULL
+    """ 
+    pass
+
+def cp_rand(src, dst, bs, fsync=False):
+    """
+    Copy a file from source to destination using random IO. A file
+    block map is built and random offsets are selected and copied
+    until the entire file been written to the destination.
+    
+    The destination may be a directory.
+    
+    Inputs:
+        src    (str): Source file
+        dst    (str): Destination file or directory
+        bs     (int): Block size in KB
+        fsync (bool): Fsync after IO is complete
+    Outputs:
+        NULL
+    """
+    pass
+    
+def r_seq(f, bs):
+    """
+    Sequential file read.
+    
+    Inputs:
+        f  (str): File
+        bs (int): Block size in KB
+    Outputs:
+        NULL
+    """
+    pass
+   
+def r_rand(f, bs):
+    """
+    Read a file using random IO.
+    
+    Inputs:
+        f  (str): File
+        bs (int): Block size in KB
+    Outputs:
+        NULL
+    """
+    pass
+    
+def r_conv(f, bs):
+    """
+    Converge file read. Given a file of size s a converged read
+    will read the blocks at offset 0, sz - bs, bs, sz - 2*bs, and so 
+    on converging to the middle of the file until the entire file has
+    been read.
+    
+    Inputs:
+        f  (str): File
+        bs (int): Block size in KB
+    Outputs:
+        NULL
+    """
+    pass
+
+def r_rand_blk(f, bs):
+    """
+    Read a random block of specified block size.
+    
+    Inputs:
+        f  (str): File
+        bs (int): Block size in KB
+    Outputs:
+        NULL
+    """
+    pass
