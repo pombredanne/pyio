@@ -112,8 +112,8 @@ def w_zero(f, sz, bs, fsync=False):
     """
     buf = '\0' * 1024
     
+    fh = os.open(f, os.O_CREAT | os.O_TRUNC | os.O_WRONLY)
     try:
-        fh = os.open(f, os.O_CREAT | os.O_TRUNC | os.O_WRONLY)
         while True:
             if sz < bs:
                 os.write(fh, buf * sz)
@@ -142,8 +142,8 @@ def w_srand(f, sz, bs, fsync=False):
     """
     buf = os.urandom(1024)
     
+    fh = os.open(f, os.O_CREAT | os.O_TRUNC | os.O_WRONLY)
     try:
-        fh = os.open(f, os.O_CREAT | os.O_TRUNC | os.O_WRONLY)
         while True:
             if sz < bs:
                 os.write(fh, buf * sz)
@@ -173,8 +173,8 @@ def w_rand(f, sz, bs, fsync=False):
     bs *= 1024
     sz *= 1024
     
+    fh = os.open(f, os.O_CREAT | os.O_TRUNC | os.O_WRONLY)
     try:
-        fh = os.open(f, os.O_CREAT | os.O_TRUNC | os.O_WRONLY)
         while True:
             if sz < bs:
                 buf = os.urandom(sz)
@@ -213,8 +213,8 @@ def w_rand_blk(f, bs, fsync=False):
     if sz < bs:
         raise ValueError('block size is greater than file size')
     
+    fh = os.open(f, os.O_CREAT | os.O_TRUNC | os.O_WRONLY)
     try:
-        fh = os.open(f, os.O_CREAT | os.O_TRUNC | os.O_WRONLY)
         os.lseek(fh, randint(0, sz - bs), 0)
         os.write(fh, buf)
         # Force write of fdst to disk.
@@ -245,9 +245,17 @@ def cp(src, dst, bs, fsync=False):
         raise Error("`%s` and `%s` are the same file" % (src, dst))
     bs *= 1024
 
+    # Handles the scenario where fsrc opens but fdst fails.
+    # The fsrc file is successfully closed if fdst fails to open
+    fsrc = os.open(src, os.O_RDONLY)
     try:
-        fsrc = os.open(src, os.O_RDONLY)
         fdst = os.open(dst, os.O_CREAT | os.O_TRUNC | os.O_WRONLY)
+    except:
+        os.close(fsrc)
+        raise
+    
+    # Perform the copy
+    try:
         while True:
             buf = os.read(fsrc, bs)
             if not buf:
@@ -287,9 +295,17 @@ def cp_conv(src, dst, bs, fsync=False):
     bs *= 1024
     idx = cycle([0,-1]).next
 
+    # Handles the scenario where fsrc opens but fdst fails.
+    # The fsrc file is successfully closed if fdst fails to open
+    fsrc = os.open(src, os.O_RDONLY)
     try:
-        fsrc = os.open(src, os.O_RDONLY)
         fdst = os.open(dst, os.O_CREAT | os.O_TRUNC | os.O_WRONLY)
+    except:
+        os.close(fsrc)
+        raise
+    
+    # Perform the copy
+    try:
         while blk_map:
             offset = blk_map.pop(idx())
             os.lseek(fsrc, offset, 0)
@@ -330,9 +346,17 @@ def cp_rand(src, dst, bs, fsync=False):
     bs *= 1024
     shuffle(blk_map)
     
+    # Handles the scenario where fsrc opens but fdst fails.
+    # The fsrc file is successfully closed if fdst fails to open
+    fsrc = os.open(src, os.O_RDONLY)
     try:
-        fsrc = os.open(src, os.O_RDONLY)
         fdst = os.open(dst, os.O_CREAT | os.O_TRUNC | os.O_WRONLY)
+    except:
+        os.close(fsrc)
+        raise
+    
+    # Perform the copy    
+    try:
         while blk_map:
             offset = blk_map.pop()
             os.lseek(fsrc, offset, 0)
@@ -360,8 +384,8 @@ def r_seq(f, bs):
     """
     bs *= 1024
 
+    fh = os.open(f, os.O_RDONLY)
     try:
-        fh = os.open(f, os.O_RDONLY)
         while True:
             buf = os.read(fh, bs)
             if not buf:
@@ -385,8 +409,8 @@ def r_rand(f, bs):
     bs *= 1024
     shuffle(blk_map)
     
+    fh = os.open(f, os.O_RDONLY)
     try:
-        fh = os.open(f, os.O_RDONLY)
         while blk_map:
             offset = blk_map.pop()
             os.lseek(fh, offset, 0)
@@ -398,7 +422,7 @@ def r_rand(f, bs):
     
 def r_conv(f, bs):
     """
-    Converge file read. Given a file of size s a converged read
+    Converge file read. Given a file of size sz, a converged read
     will read the blocks at offset 0, sz - bs, bs, sz - 2*bs, and so 
     on converging to the middle of the file until the entire file has
     been read.
@@ -413,8 +437,8 @@ def r_conv(f, bs):
     bs *= 1024
     idx = cycle([0,-1]).next
     
+    fh = os.open(f, os.O_RDONLY)
     try:
-        fh = os.open(f, os.O_RDONLY)
         while blk_map:
             offset = blk_map.pop(idx())
             os.lseek(fh, offset, 0)
@@ -439,8 +463,8 @@ def r_rand_blk(f, bs):
     if sz < bs:
         raise ValueError('block size is greater than file size')
     
+    fh = os.open(f, os.O_RDONLY)
     try:            
-        fh = os.open(f, os.O_RDONLY)
         os.lseek(fh, randint(0, sz - bs), 0)
         os.read(fh, bs)
     except:
