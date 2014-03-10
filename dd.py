@@ -67,7 +67,7 @@ def dd(ifile, ofile, bs, count=None):
     size = int(s.group(1))
     time = float(s.group(2))
 
-    # Calculate throughput in Mib, i.e. base 2
+    # Calculate throughput in Bi/s, i.e. base 2
     # Note that dd returns base 10 calcaulation
     tput = size / time
 
@@ -90,6 +90,7 @@ def w_seq(f, bs, count):
         iops (float): IO's per second
     """
     time, tput, iops = dd('/dev/zero', f, bs, count)
+
     return (time, tput, iops)
 
 def r_seq(f, bs):
@@ -105,4 +106,5 @@ def r_seq(f, bs):
         iops (float): IO's per second
     """
     time, tput, iops = dd(f, 'dev/null', bs)
+
     return (time, tput, iops)

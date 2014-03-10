@@ -90,7 +90,7 @@ def mkdirs(d, mode=0777):
     Outputs:
         NULL
     """
-    try: 
+    try:
         os.makedirs(d, mode)
     except OSError, err:
         # Reraise the error unless it's about an already existing directory 
