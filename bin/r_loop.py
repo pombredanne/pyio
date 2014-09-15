@@ -65,7 +65,7 @@ def read(files, count, bs):
     id = threading.current_thread()
     while alive:
         f = files[randint(0, count)]
-        print "%s %s" % (id, f)
+        #print "%s %s" % (id, f)
         r_seq(f, bs)
 
 
@@ -95,7 +95,7 @@ def main(root, bs, thr_ct):
 
     try:
         while True:
-            time.sleep(1)
+            raw_input()
     except KeyboardInterrupt:
         global alive
         alive = False
