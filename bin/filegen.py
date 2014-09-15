@@ -26,6 +26,7 @@ from random import randint
 from argparse import ArgumentParser
 from pyio import w_srand, w_rand, w_zero
 
+
 def filegen(min_sz, max_sz, qty, ftype, bs=1024, dst=None, split=None):
     """
     Generate files.
@@ -100,7 +101,8 @@ if __name__ == '__main__':
     parser.add_argument('--qty', dest='qty', type=int, required=True,
                         help='file count')
     parser.add_argument('--ftype', '-f', dest='ftype', type=int, required=True,
-                        choices=[0, 1, 2], help='file type (0=zero, 1=rand, 2=srand)')
+                        choices=[0, 1, 2],
+                        help='file type (0=zero, 1=rand, 2=srand)')
     parser.add_argument('--dst', dest='dst', type=str, required=False,
                         default=None, help='destination directory')
     parser.add_argument('--split', dest='split', type=int, required=False,
@@ -109,4 +111,5 @@ if __name__ == '__main__':
                         default=1024, help='IO record size')
     args = parser.parse_args()
     
-    filegen(args.min, args.max, args.qty, args.ftype, args.bs, args.dst, args.split)
+    filegen(args.min, args.max, args.qty, args.ftype, args.bs, args.dst,
+            args.split)

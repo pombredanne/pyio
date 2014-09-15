@@ -32,15 +32,15 @@ pyio.mkdirs(d)
 
 # w_zero
 pyio.w_zero('%s/zero_1.out' % d, 10, 32, fsync=False)
-pyio.w_zero('%s/zero_2.out'% d, 10, 1, fsync=True)
+pyio.w_zero('%s/zero_2.out' % d, 10, 1, fsync=True)
 
 # w_srand
 pyio.w_srand('%s/srand_1.out' % d, 10, 32, fsync=False)
-pyio.w_srand('%s/srand_2.out'% d, 32, 1, fsync=True)
+pyio.w_srand('%s/srand_2.out' % d, 32, 1, fsync=True)
 
 # w_rand
 pyio.w_rand('%s/rand_1.out' % d, 10, 32, fsync=False)
-pyio.w_rand('%s/rand_2.out'% d, 32, 1, fsync=True)
+pyio.w_rand('%s/rand_2.out' % d, 32, 1, fsync=True)
 
 # w_rand_blk
 pyio.w_zero('%s/rand_blk_1.out' % d, 32, 64, fsync=False)
@@ -68,10 +68,12 @@ if not filecmp.cmp('%s/rand_2.out' % d, '%s/cp_rand_2.out' % d):
     print 'pyio.cp_conv round 2 files differ'
 
 # cp_rand
-pyio.cp_rand('%s/rand_blk_1.out' % d, '%s/cp_rand_blk_1.out' % d, 32, fsync=False)
+pyio.cp_rand('%s/rand_blk_1.out' % d, '%s/cp_rand_blk_1.out' % d, 32,
+             fsync=False)
 if not filecmp.cmp('%s/rand_blk_1.out' % d, '%s/cp_rand_blk_1.out' % d):
     print 'pyio.cp_rand round 1 files differ'
-pyio.cp_rand('%s/rand_blk_2.out' % d, '%s/cp_rand_blk_2.out' % d, 128, fsync=True)
+pyio.cp_rand('%s/rand_blk_2.out' % d, '%s/cp_rand_blk_2.out' % d, 128,
+             fsync=True)
 if not filecmp.cmp('%s/rand_blk_2.out' % d, '%s/cp_rand_blk_2.out' % d):
     print 'pyio.cp_rand round 2 files differ'
     

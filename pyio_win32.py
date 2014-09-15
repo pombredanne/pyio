@@ -29,6 +29,7 @@ from random import randint, shuffle
 import win32file
 import win32con
 
+
 def seed(x):
     """
     Define a seed for the pseudo random number generator.
@@ -62,6 +63,7 @@ def _samefile(src, dst):
     return (os.path.normcase(os.path.abspath(src)) ==
             os.path.normcase(os.path.abspath(dst)))
 
+
 def _blk_map(f, bs):
     """
     Build a block map index.
@@ -82,6 +84,7 @@ def _blk_map(f, bs):
     blk_map = [offset * bs for offset in offsets]
     return blk_map
 
+
 def mkdirs(d, mode=0777):
     """
     Create directory and intermediate directories if required.
@@ -98,7 +101,8 @@ def mkdirs(d, mode=0777):
         # Reraise the error unless it's about an already existing directory 
         if err.errno != errno.EEXIST or not os.path.isdir(d): 
             raise
-        
+
+
 def w_zero(f, sz, bs, fsync=False):
     """
     Create a new file and fill it with zeros.
@@ -112,6 +116,7 @@ def w_zero(f, sz, bs, fsync=False):
         NULL
     """
     pass
+
 
 def w_srand(f, sz, bs, fsync=False):
     """
@@ -127,6 +132,7 @@ def w_srand(f, sz, bs, fsync=False):
     """
     pass
 
+
 def w_rand(f, sz, bs, fsync=False):
     """
     Create a new file and fill it with random data.
@@ -140,6 +146,7 @@ def w_rand(f, sz, bs, fsync=False):
         NULL
     """
     pass
+
 
 def w_rand_blk(f, bs, fsync=False):
     """
@@ -158,6 +165,7 @@ def w_rand_blk(f, bs, fsync=False):
         NULL
     """
     pass
+
 
 def cp(src, dst, bs, fsync=False):
     """
@@ -180,7 +188,7 @@ def cp(src, dst, bs, fsync=False):
    
     # Open destination file using win32 API
     fdst = win32file.CreateFile(dst, win32file.GENERIC_WRITE, 0, None,
-           win32con.CREATE_ALWAYS, None, None)
+                                win32con.CREATE_ALWAYS, None, None)
 
     try:
         # Write file and metadata.
@@ -198,7 +206,8 @@ def cp(src, dst, bs, fsync=False):
         raise
     finally:
         fdst.close()
-            
+
+
 def cp_conv(src, dst, bs, fsync=False):
     """
     Converge file copy. Given a file of size 's' a converged copy
@@ -218,6 +227,7 @@ def cp_conv(src, dst, bs, fsync=False):
     """ 
     pass
 
+
 def cp_rand(src, dst, bs, fsync=False):
     """
     Copy a file from source to destination using random IO. A file
@@ -235,7 +245,8 @@ def cp_rand(src, dst, bs, fsync=False):
         NULL
     """
     pass
-    
+
+
 def r_seq(f, bs):
     """
     Sequential file read.
@@ -247,7 +258,8 @@ def r_seq(f, bs):
         NULL
     """
     pass
-   
+
+
 def r_rand(f, bs):
     """
     Read a file using random IO.
@@ -259,7 +271,8 @@ def r_rand(f, bs):
         NULL
     """
     pass
-    
+
+
 def r_conv(f, bs):
     """
     Converge file read. Given a file of size s a converged read
@@ -274,6 +287,7 @@ def r_conv(f, bs):
         NULL
     """
     pass
+
 
 def r_rand_blk(f, bs):
     """

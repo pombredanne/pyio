@@ -21,11 +21,11 @@ this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import os
-import stat
 import errno
 from itertools import cycle
 from math import ceil
 from random import randint, shuffle
+
 
 def seed(x):
     """
@@ -60,6 +60,7 @@ def _samefile(src, dst):
     return (os.path.normcase(os.path.abspath(src)) ==
             os.path.normcase(os.path.abspath(dst)))
 
+
 def _blk_map(f, bs):
     """
     Build a block map index.
@@ -80,6 +81,7 @@ def _blk_map(f, bs):
     blk_map = [offset * bs for offset in offsets]
     return blk_map
 
+
 def mkdirs(d, mode=0777):
     """
     Create directory and intermediate directories if required.
@@ -97,6 +99,7 @@ def mkdirs(d, mode=0777):
         if err.errno != errno.EEXIST or not os.path.isdir(d): 
             raise
         
+
 def w_zero(f, sz, bs, fsync=False):
     """
     Create a new file and fill it with zeros.
@@ -127,6 +130,7 @@ def w_zero(f, sz, bs, fsync=False):
     finally:
         os.close(fh)
 
+
 def w_srand(f, sz, bs, fsync=False):
     """
     Create a new file and fill it with pseudo random data.
@@ -156,6 +160,7 @@ def w_srand(f, sz, bs, fsync=False):
         raise
     finally:
         os.close(fh)
+
 
 def w_rand(f, sz, bs, fsync=False):
     """
@@ -189,6 +194,7 @@ def w_rand(f, sz, bs, fsync=False):
         raise
     finally:
         os.close(fh)
+
 
 def w_rand_blk(f, bs, fsync=False):
     """
@@ -224,6 +230,7 @@ def w_rand_blk(f, bs, fsync=False):
     finally:
         os.close(fh)
 
+
 def cp(src, dst, bs, fsync=False):
     """
     Copy a file from source to destination.
@@ -241,7 +248,7 @@ def cp(src, dst, bs, fsync=False):
     if os.path.isdir(dst):
         dst = os.path.join(dst, os.path.basename(src)) 
     if _samefile(src, dst):
-        raise Error("`%s` and `%s` are the same file" % (src, dst))
+        raise Exception("`%s` and `%s` are the same file" % (src, dst))
     bs *= 1024
 
     # Handles the scenario where fsrc opens but fdst fails.
@@ -269,6 +276,7 @@ def cp(src, dst, bs, fsync=False):
         os.close(fsrc)
         os.close(fdst)
             
+
 def cp_conv(src, dst, bs, fsync=False):
     """
     Converge file copy. Given a file of size 's' a converged copy
@@ -289,10 +297,10 @@ def cp_conv(src, dst, bs, fsync=False):
     if os.path.isdir(dst):
         dst = os.path.join(dst, os.path.basename(src))
     if _samefile(src, dst):
-        raise Error("`%s` and `%s` are the same file" % (src, dst))   
+        raise Exception("`%s` and `%s` are the same file" % (src, dst))
     blk_map = _blk_map(src, bs)
     bs *= 1024
-    idx = cycle([0,-1]).next
+    idx = cycle([0, -1]).next
 
     # Handles the scenario where fsrc opens but fdst fails.
     # The fsrc file is successfully closed if fdst fails to open
@@ -320,6 +328,7 @@ def cp_conv(src, dst, bs, fsync=False):
         os.close(fsrc)
         os.close(fdst)
 
+
 def cp_rand(src, dst, bs, fsync=False):
     """
     Copy a file from source to destination using random IO. A file
@@ -339,7 +348,7 @@ def cp_rand(src, dst, bs, fsync=False):
     if os.path.isdir(dst):
         dst = os.path.join(dst, os.path.basename(src))
     if _samefile(src, dst):
-        raise Error("`%s` and `%s` are the same file" % (src, dst))
+        raise Exception("`%s` and `%s` are the same file" % (src, dst))
     
     blk_map = _blk_map(src, bs)
     bs *= 1024
@@ -371,6 +380,7 @@ def cp_rand(src, dst, bs, fsync=False):
         os.close(fsrc)
         os.close(fdst)
     
+
 def r_seq(f, bs):
     """
     Sequential file read.
@@ -394,6 +404,7 @@ def r_seq(f, bs):
     finally:
         os.close(fh)
    
+
 def r_rand(f, bs):
     """
     Read a file using random IO.
@@ -419,6 +430,7 @@ def r_rand(f, bs):
     finally:
         os.close(fh)
     
+
 def r_conv(f, bs):
     """
     Converge file read. Given a file of size sz, a converged read
@@ -434,7 +446,7 @@ def r_conv(f, bs):
     """
     blk_map = _blk_map(f, bs)
     bs *= 1024
-    idx = cycle([0,-1]).next
+    idx = cycle([0, -1]).next
     
     fh = os.open(f, os.O_RDONLY)
     try:
@@ -446,6 +458,7 @@ def r_conv(f, bs):
         raise
     finally:
         os.close(fh)
+
 
 def r_rand_blk(f, bs):
     """
