@@ -86,7 +86,7 @@ def main(root, thr_ct):
     # Start threads
     thrs = []
     for i in range(thr_ct):
-        t = threading.Thread(target=stat, args=(files))
+        t = threading.Thread(target=stat, args=([files]))
         t.start()
         thrs.append(t)
 
