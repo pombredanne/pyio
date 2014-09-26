@@ -22,10 +22,8 @@ this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
 import argparse
-import time
 import threading
 from random import randint
-from pyio import r_seq
 
 
 alive = True
