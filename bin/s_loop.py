@@ -50,7 +50,7 @@ def walk(root):
     return f
 
 
-def read(files):
+def stat(files):
     """
     Stat a random file.
 
