@@ -51,21 +51,22 @@ def walk(root):
     return f
 
 
-def read(files, count, bs):
+def read(files, bs):
     """
     Read a random file.
 
     Inputs:
         files (list): File list
-        count  (int): File count
         bs     (int): Block size
     Outputs:
         None
     """
-    id = threading.current_thread()
+    # thr_id = threading.current_thread()
+    count = len(files) - 1
+
     while alive:
         f = files[randint(0, count)]
-        #print "%s %s" % (id, f)
+        # print "%s %s" % (thr_id, f)
         r_seq(f, bs)
 
 
@@ -74,22 +75,23 @@ def main(root, bs, thr_ct):
     Infinite read loop.
 
     Inputs:
-        root (str): Root directory
-        bs   (int): Block size in KB
+        root   (str): Root directory
+        bs     (int): Block size in KB
+        thr_ct (int): Thread count
     Outputs:
         NA
     """
 
     # Walk directory
     files = walk(root)
-    count = len(files) - 1
 
+    print "Starting %d read threads." % thr_ct
     print "Use CTRL-C to exit."
 
     # Start threads
     thrs = []
     for i in range(thr_ct):
-        t = threading.Thread(target=read, args=(files, count, bs))
+        t = threading.Thread(target=read, args=(files, bs))
         t.start()
         thrs.append(t)
 
